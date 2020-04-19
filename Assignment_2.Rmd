@@ -1,0 +1,174 @@
+---
+title: "Assignment 2"
+author: "Mohamed Megahed"
+date: "4/16/2020"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+### Reading Dataset
+```{r}
+Data <- read.csv("C:/E/MSBA/Spring 2020/Analytics in Practice/Assignment 2/Sample_CA_airtraffic_delays.csv")
+
+#Selecting the needed variables from the dataset
+Data_Delays <- Data %>% select("ArrTime","DepTime","DayofMonth","DayOfWeek","Origin","OriginAirportID","DepDelay","DepDelayMinutes", "DepDel15","Dest","ArrDelay","ArrDelayMinutes","ArrDel15","Distance","CarrierDelay","WeatherDelay","DestStateName","Cancelled","Diverted","CRSDepTime","CRSArrTime")
+```
+
+### Data Understanding
+```{r}
+summary(Data_Delays)
+```
+
+### Data Pre-Processing
+** checking if there any missing data using "Amelia package"
+```{r, fig.height=7, fig.width=15}
+library(Amelia)
+missmap(Data_Delays, main = "Missing values vs observed",legend = TRUE)
+
+anyNA(Data_Delays)
+sum(is.na(Data_Delays))
+```
+
+***Replacing NA values with 0***
+```{r, fig.height=7, fig.width=15}
+Data_Cleaned <- Data_Delays
+Data_Cleaned[is.na(Data_Cleaned)] <- 0
+
+# converting time and date variables to factors
+Data_Cleaned$DayofMonth <- as.factor(Data_Cleaned$DayofMonth)
+#Data_Cleaned$DayOfWeek <- as.factor(Data_Cleaned$DayOfWeek)
+#Data_Cleaned$DepDel15 <- as.factor(Data_Cleaned$DepDel15)
+
+```
+
+```{r}
+str(Data_Cleaned)
+head(Data_Cleaned)
+```
+
+### Q1 and 2
+```{r}
+Month <- Data_Cleaned %>% group_by( DayofMonth ) %>% 
+    summarise( Count = n(), Avg_ArrTime=mean(ArrTime), Avg_ArrDelay=mean(ArrDelay),  Avg_DepTime=mean(DepTime), Avg_DepDelay=mean(DepDelay))
+
+Week <- Data_Cleaned%>% group_by( DayOfWeek ) %>% 
+    summarise( Count = n(), Avg_ArrTime=mean(ArrTime), Avg_ArrDelay=mean(ArrDelay),  Avg_DepTime=mean(DepTime), Avg_DepDelay=mean(DepDelay))
+```
+
+```{r, fig.height=4, fig.width=10}
+ggplot(data=Week, aes(x=DayOfWeek, y=Avg_ArrDelay)) +geom_line(stat="identity", fill="steelblue")+
+  geom_text(aes(label=round(Avg_ArrDelay, 2)), vjust=1.6, color="darkblue",
+  position = position_dodge(0.9), size=3.5)+scale_fill_brewer(palette="Paired")+
+  theme_minimal()+labs(title="Avg Arrival Delay by Day of Week")
+```
+
+```{r, fig.height=4, fig.width=10}
+ggplot(Data_Cleaned, aes(x=DayOfWeek, y= DepDelay, color = DepDel15, size = DepDelayMinutes)) + geom_point()
+```
+
+```{r, fig.height=4, fig.width=10}
+# Arrival and Departure Delays per week of the month and days
+ggplot(Data_Cleaned, aes(x=DayofMonth, y= DayOfWeek, color =DepDelay , size =DepDelayMinutes)) + geom_point()
+
+ggplot(Data_Cleaned, aes(x=DayofMonth, y= DayOfWeek, color =ArrDelay , size =ArrDelayMinutes)) + geom_point()
+```
+
+```{r, fig.height=4, fig.width=10}
+ggplot(data=Month, aes(x=DayofMonth, y=Avg_DepDelay)) +geom_line(stat="identity", fill="steelblue")+
+  geom_text(aes(label=round(Avg_DepDelay, 1)), vjust=1.6, color="red",
+  position = position_dodge(0.9), size=2)+scale_fill_brewer(palette="Paired")+
+  theme_minimal()+labs(title="Avg Departure Delay by Day of Month")
+```
+
+```{r, fig.height=4, fig.width=10}
+ggplot(Data_Cleaned, aes(x=DepDelay, y= ArrDelay, color = DepDel15, sahpe = DepDelayMinutes)) + geom_point()
+```
+Q3 Which Airport ('Origin Airport') has highest departure delay? 
+```{r, fig.height=4, fig.width=10}
+Data_Cleaned %>%
+ filter(DepDelay >= -1L & DepDelay <= 403L) %>%
+ ggplot() +aes(x = Origin, y = DepDelay, color = Origin) +
+ geom_point() +
+ scale_fill_hue() +
+ labs(x = "Origin Airport", y = "Departure Delay(in min)", title = "Departure Delays per Airport") +
+ theme_minimal() +
+ theme(legend.position = "none")
+```
+
+Q4 Which Airport has highest Arrival delay?
+```{r, fig.height=4, fig.width=10}
+Data_Cleaned %>%
+ filter(ArrDelay >= -64L & ArrDelay <= 405L) %>%
+ ggplot() +aes(x = Origin, y = ArrDelay, color = Origin) +
+ geom_point() +
+ scale_fill_hue() +
+ labs(x = "Airports", y = "Arrival Delay(in min)", title = "Arrival Delays at Airports")
+```
+
+Q5 How do you relate the delay pattern to the distance travelled?
+```{r, fig.height=4, fig.width=10}
+ggplot(Data_Cleaned, aes(ArrDelay, Distance)) + 
+  geom_point(aes(colour= "green"))+
+  facet_wrap(~OriginAirportID)+labs(title="Origin Airports by Distance vs Arrival Delays")+xlab("Arrival Delay") + ylab("Distance")
+```
+
+Q6 Is there any correlation between weather delay and carrier delay?
+```{r, fig.height=4, fig.width=10}
+ggplot(Data_Cleaned, aes(x=CarrierDelay, y= WeatherDelay, color = DayOfWeek)) + geom_point()+labs(title = "Carrier Delay Vs Weather Delay")+
+  annotate(geom = "text",x=200,y=200,label="Correlation = -0.0425",hjust="left")
+```
+
+Q7 What is the delay pattern you can find in respective states?
+```{r, fig.height=6, fig.width=13}
+State_df<-Data_Cleaned %>% 
+    group_by( DestStateName, DayOfWeek ) %>% 
+    summarise( Count = n(), Avg_ArrTime=mean(ArrTime), Avg_ArrDelay=mean(ArrDelay),  Avg_DepTime=mean(DepTime), Avg_DepDelay=mean(DepDelay))
+ggplot(State_df, aes(DayOfWeek, Avg_ArrDelay)) +geom_line(stat="identity", fill="steelblue")+
+  geom_text(aes(label=round(Avg_ArrDelay, 1)), vjust=1.6, color="white",
+            position = position_dodge(0.9), size=2)+
+  scale_fill_brewer(palette="Paired")+
+  theme_minimal()+
+  facet_wrap(~DestStateName)+labs(title="Delay Pattern by State")+xlab("Day of the Week") + ylab("Arrival Delay")
+```
+
+Q8 How many delayed flights were cancelled?
+```{r}
+cancelled_df<-Data_Cleaned %>% 
+    filter(DepDelay>0) %>% filter(Cancelled==1) %>% 
+    summarise( Count = n())
+cancelled_df
+```
+Q9 How many delayed flights were diverted?
+```{r}
+diverted_df<-Data_Cleaned%>% 
+    filter(DepDelay>0) %>% filter(Diverted==1) %>% 
+    summarise( Count = n())
+diverted_df
+```
+Q10 What time of the day do you find Arrival delays?
+```{r, fig.height=6, fig.width=13}
+Data_Cleaned %>%
+ filter(ArrDelay >= 0L & ArrDelay <= 410L) %>%
+ ggplot() + aes(x = CRSArrTime, y = ArrDelay) +
+ geom_bin2d(size = 0.5, colour = "yellow") +
+ labs(x = "Time (hh:mm)", y = "Arrival Delay", title = "Arrival Delays by Day Time") +
+ theme_minimal()
+```
+
+Q11 What time of the day do you find Departure delays?
+```{r, fig.height=6, fig.width=13}
+Data_Cleaned %>%
+ filter(DepDelay >= -1L & DepDelay <= 417L) %>%
+ ggplot() + aes(x = CRSDepTime, y = DepDelay) +
+ geom_bin2d(size = 0.5, colour = "red") +
+ labs(x = "Time (hh:mm)", y = "Arrival Delay", title = "Departure Delays by Day Time") +
+ theme_minimal()
+```
+
