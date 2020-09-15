@@ -1,0 +1,152 @@
+---
+title: "Case Study 1"
+author: "Mohamed Megahed"
+date: "4/19/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+### Class Practice - 1
+```{r}
+library(ggplot2)
+```
+
+### 1.	Plot the following using ggplot():
+
+ggplot(cars, aes(x=displ, y = hwy)) + geom_point()_
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = hwy)) + geom_point()
+```
+
+2. How would you describe the relationship between cty and hwy (plot graph using ggplot)? Do you have any concerns about drawing conclusions from that plot?
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg) + aes(x = hwy, y = cty) + geom_point(size = 1.52, colour = "#0c4c8a")+ geom_smooth() +
+ labs(x = "Highway", y = "City", title = "MPG per city vs highway")
+```
+
+From the graph we can see a positive correlation between number of miles per galon on the hwy and on the cty.
+
+3. Plot the following graph and explain the output:
+
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(model, manufacturer)) + geom_point()
+ggplot(mpg, aes(x = model, y = manufacturer, fill = manufacturer)) + geom_bin2d()
+
+```
+***This graph is not useful as the model and manufacturer are categorical variables, so we can use different plot to visualize the relation better***
+
+4.Is the above graph useful? How could you modify the data to make it more informative?__
+```{r, fig.height=5, fig.width=11}
+library(dplyr)
+mpg %>% transmute("manufacturerAndmodel" =paste(manufacturer,model,sep="-")) %>% ggplot(aes(manufacturerAndmodel))+geom_bar(fill = "darkblue",width=0.7)+labs(x = "Manufacturer - Models", y = "Total Count", title = "Total count of car models") +theme_minimal()+coord_flip()
+```
+
+### Class Practice - 2
+
+1.	Plot the following using ggplot()__
+
+ggplot(mpg, aes(x=displ, y = cty, colour = class)) +  geom_point()
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = cty, colour = class)) +  geom_point()
+```
+2.	Plot the following (adding one more dimension):
+
+_ggplot(mpg, aes(x=displ, y = hwy, shape = drv)) + geom_point(colour = "orange")_
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = hwy, shape = drv)) + 
+  	geom_point(colour = "orange")
+```
+3.	Plot the following graph (adding more dimensions)
+
+_ggplot(mpg, aes(x=displ, y = cty, size = drv)) + geom_point(colour="green")_
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = cty, size = drv)) + 
+ geom_point(colour="red")
+```
+4.	Plot the following graph:
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = cty, shape = drv,colour=class)) + geom_point()
+```
+
+5. Plot the following graph:
+
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = cty, shape = drv,colour=class,size=cyl)) + geom_point()
+```
+
+6.	How is drive train related to fuel economy? Plot and show
+
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg,aes(drv,cty))+geom_boxplot(fill = 'steelblue') + theme_minimal()
+```
+
+7.	How is drive train related to engine size and class? Plot and show
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg,aes(class,displ,color=drv))+geom_point(size = 1.5)+theme_minimal()
+```
+
+8.	What happens if you map trans variable to shape? Why?
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg,aes(class,displ,shape=trans))+geom_point()
+```
+
+
+It is incomplete visualizayion as the trans variable has 10 different categorical records exeeds the limmit 6 and the error message says that _"The shape palette can deal with a maximum of 6 discrete values because more than 6 becomes difficult to discriminate; you have 10. Consider specifying shapes manually if you must have them.Removed 96 rows containing missing values (geom_point)"_.
+ 
+### Class practice - 3
+
+1.	Plot this graph using ggplot()
+
+_ggplot(cars, aes(displ,cty)) + geom_point(colour="orange")  + facet_wrap(~class)_
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(displ,cty)) + geom_point(colour="orange")  + facet_wrap(~class)
+```
+
+2.	Use facetting to explore the 3-way relationship between fuel economy, engine size, and number of cylinders.
+
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(displ,cty)) + geom_point(colour="#0c4c8a")  + facet_wrap(~cyl) + labs(x = "Engine Size", y = "Feul Economy", title = "Relations per Cylinder")
+```
+
+3. How does facetting by number of cylinders change your assessment of the relationship between engine size and fuel economy?
+
+***Relationship varies with respect to engine size among different cylinder.as the Cylinders 4 and 6 have Negative correlation nad Cylinder 5 has no relation. Cylinder 8 has a steep positive correlation between displ and cty***
+
+### Class Practice - 4
+
+1. Plot the following graph adding smooth()
+
+_ggplot(cars, aes(x=displ, y = cty)) +  geom_point(colour="green") + geom_smooth()_
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = cty)) +  geom_point(colour="green") + geom_smooth()
+```
+
+2.	Change the method to linear (method='lm')
+
+_ggplot(cars, aes(x=displ, y = cty)) + geom_point(colour="green") + geom_smooth(method = "lm")_
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = cty)) + geom_point(colour="green") +  geom_smooth(method = "lm") 
+```
+
+3.	Changing the span parameter to control wiggliness of the line:
+
+_ggplot(cars, aes(x=displ, y = cty)) +  geom_point(colour="red") + geom_smooth(span=0.4)_
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = cty)) +  geom_point(colour="red") + geom_smooth(span=0.4)
+```
+
+4 How is this smooth() function useful in interpreting results?
+
+***The smooth line gives us more clear visualiztion about the trend of the relation. The grey part in smoothing line is the confidence interval.***
+
+5 Can you use this to explain this to a senior management executive?
+
+**From the above graph we can notice that the engine size affects the number of gallons per mile in the city roads, while the engine is small it consumes more galons and decreases untill a size of 5 then starts to consume more galons when the size exceeds 6.**
+
+__6 Try changing span parameter, Values range from 0 to 1__
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(x=displ, y = cty)) +  geom_point(colour="blue") + geom_smooth(span=0)
+ggplot(mpg, aes(x=displ, y = cty)) +  geom_point(colour="red") + geom_smooth(span=0.5)
+ggplot(mpg, aes(x=displ, y = cty)) +  geom_point(colour="red") + geom_smooth(span=1)
+```

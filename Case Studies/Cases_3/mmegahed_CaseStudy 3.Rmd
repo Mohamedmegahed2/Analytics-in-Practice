@@ -1,0 +1,154 @@
+---
+title: "Case Study 3"
+author: "Mohamed Megahed"
+date: "4/19/2020"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+```{r, echo=FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Class Practice - 8
+```{r}
+library(ggplot2)
+library(ggforce)
+library(gghighlight)
+```
+
+__1. plot the following graph and label as shown:__
+_ggplot(economics, aes(date, unemploy)) +  geom_line() + labs(title=caption,  y="Unemployment",  x="Year")_ 
+```{r, fig.height=5, fig.width=11}
+ggplot(economics, aes(date, unemploy)) +  geom_line() + labs(title="Umeployment rates",  y="Unemployment",  x="Year",caption = "Umemployment rates")
+```
+
+__2 Plot following program to annotate the graph__
+```{r, fig.height=5, fig.width=11}
+
+p <- ggplot(mpg, aes(displ, cty)) +
+geom_point(data = filter(mpg, manufacturer == "audi"),colour = "red",
+size = 3
+) +geom_point()
+
+p +
+annotate(
+geom = "curve", x = 3, y = 35, xend = 2.8, yend = 20,
+curvature = .3, arrow = arrow(length = unit(2, "mm"))
+) +
+annotate(geom = "text", x = 3.1, y = 35, label = "Audi", hjust = "left")
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(colour = "red") + 
+  ggforce::geom_mark_ellipse(aes(label = cyl, group = cyl, color = cyl))
+
+ggplot(mpg, aes(displ, cty, 
+            colour = factor(drv))) +
+  geom_point() + 
+  gghighlight::gghighlight() + 
+  facet_wrap(vars(drv))
+```
+
+__3 Try following plot__
+```{r, fig.height=5, fig.width=11}
+#Plot 1:
+ggplot(mpg, aes( displ,cty)) + 
+  geom_point() + 
+  geom_smooth()
+
+#Plot 2:
+ggplot(mpg, aes(cty,displ)) + 
+  geom_point() + 
+  geom_smooth()
+
+#Plot 3:
+ggplot(mpg, aes(displ, cty)) + 
+  geom_point() + 
+  geom_smooth() + 
+  coord_flip()
+
+```
+
+__4. Using "Annotation" discussed earlier, highlight car type "Honda"__
+```{r, fig.height=5, fig.width=11}
+h <- ggplot(mpg, aes(displ, cty)) +
+  geom_point(
+    data = filter(mpg, manufacturer == "honda"), 
+    colour = "green",
+    size = 3
+           ) + geom_point() + theme_minimal()
+
+h + annotate(
+    geom = "curve", x = 4, y = 27, xend = 2.05, yend = 21.5, 
+    curvature = .3, arrow = arrow(length = unit(3, "mm"))
+    ) + annotate(geom = "text", x = 4.02, y = 27, label = "Honda", hjust = "left",colour = "red")
+```
+
+__5. Using ggforce() to highlight the "Class" of cars on "City" mileage based on engine (displ)__
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(displ, cty)) +
+  geom_point(size = 1, colour = "blue") + theme_minimal() +
+  ggforce::geom_mark_ellipse(aes(label = class, group = class,color = class))
+```
+
+__6. Using gghighlight() cluster "transmission" type__
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(displ, cty, 
+            colour =factor(trans))) +
+  geom_point(size = 1) + theme_minimal() +
+  gghighlight::gghighlight() + 
+  facet_wrap(vars(trans))
+```
+
+# Class Practice - 9
+
+### Building layers:
+
+_1. Execute the following commands to build the first layer:_
+_p<-ggplot(mpg, aes(displ, hwy))_
+```{r, fig.height=5, fig.width=11}
+p<-ggplot(mpg, aes(displ, hwy))
+p
+```
+__2 Add aesthetics to the plot:__
+
+```{r, fig.height=5, fig.width=11}
+p + layer(
+  mapping = NULL, 
+  data = NULL,
+  geom = "point", 
+  stat = "identity",
+  position = "identity"
+)
+```
+
+__3. Can you change "colour" of points?__
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(displ, hwy))+ layer(
+  mapping = NULL, 
+  data = NULL,
+  geom = "point", 
+  stat = "identity",
+  position = "identity",
+)+ geom_point(size = 1, colour = "red")
+```
+
+__4. Fit the line to the data points by executing following ggplot() program:__
+
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(displ, hwy, colour = class)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  theme(legend.position = "none")
+```
+
+__5. Add two methods in the geom_smooth__
+```{r, fig.height=5, fig.width=11}
+ggplot(mpg, aes(displ, hwy)) + 
+  geom_point(aes(colour = class)) + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  theme(legend.position = "none")
+```

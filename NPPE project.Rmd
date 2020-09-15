@@ -1,0 +1,97 @@
+---
+title: "NPPES"
+author: "Mohamed Megahed"
+date: "2/18/2020"
+output: html_document
+---
+
+# first as our dataset size is 7 GB, we can import it using he following
+```{r setup, include=FALSE}
+N <-read.csv(file="npidata_pfile_20050523-20200209.csv",
+              header= TRUE,
+              sep=",",
+              nrows = 200000)
+ncol(N)
+nrow(N)
+```
+
+### Data Pre-processing
+
+## checking if there is any duplicated records
+```{r}
+Duplicated_RECORDS <- N[N$NPI==N$NPI[duplicated(N$NPI)],]
+Duplicated_RECORDS
+```
+
+** checking if there any missing data using "Amelia package"
+```{r}
+# Check if there are any missing values:
+anyNA(N)
+sum(is.na(N))
+mean(is.na(N))
+# the percent of missing data values is 24.08 %
+
+# Check percentages and counts of missing values in columns:
+col_miss_per <- colMeans(is.na(N))*100
+col_miss <- as.data.frame(col_miss_per)
+col_mi <- col_miss[order(col_miss_per,decreasing = TRUE),]
+col_mi
+colSums(is.na(N))
+```
+
+# ploting the missing and observed data values
+```{r, fig.height=7, fig.width=15}
+# A visual take on the missing values might be helpful: the Amelia package has a special plotting function missmap() that will plot the dataset and highlight missing values:
+library(Amelia)
+missmap(N, main = "Missing values vs observed")
+```
+
+### taking random samples
+```{r}
+set.seed(1000)
+R1 <- N[sample(nrow(N), 50000),]
+R2 <- N[sample(nrow(N), 50000),]
+```
+
+# compare the 2 daasets and gettig the rows that are not exists in both datasets and the rows that are exists in both datasets
+```{r}
+library("sqldf")
+R1NotInR2 <- sqldf('SELECT * FROM R1 EXCEPT SELECT * FROM R2')
+R1NotInR2
+#And the rows which are in both data frames:
+R1InR2 <- sqldf('SELECT * FROM R1 INTERSECT SELECT * FROM R2')
+R1InR2
+```
+
+```{r}
+library(compareDF)
+R_compare = compare_df(R1[1:100,], R2[1:100,], "NPI")
+head(R_compare$comparison_df)
+```
+
+# look for similarity 
+```{r}
+UNI <- unique(N[c("NPI","Healthcare.Provider.Primary.Taxonomy.Switch_1")])
+UNI
+
+UNI2 <- unique(N[c("NPI","Provider.Business.Practice.Location.Address.City.Name","Entity.Type.Code")])
+UNI2
+```
+
+# Unique
+```{r}
+unique(N)
+```
+
+```{r}
+# Using subset:
+missing<-subset(R1, !(NPI %in% R2$NPI))
+missing
+```
+
+# you want to see if each value of R1$NPI (for instance) matches the entire values of R2$Provider.Organization.Name..Legal.Business.Name. (for instance).
+```{r}
+library(tidyverse)
+s <- bind_cols(R2, map_dfc(R1$NPI, ~ transmute(R2, new_col = R1$NPI[.] == R2$Provider.Organization.Name..Legal.Business.Name.)))
+head(s)
+```
